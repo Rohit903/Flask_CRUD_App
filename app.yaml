@@ -1,9 +1,7 @@
---- 
 api_version: 1
+threadsafe: true
 handlers: 
   - 
     script: Webserver.py
-    url: .*
-runtime: python
-runtime_config: 
-  python_version : 3
+    url: /.*
+runtime: python27
