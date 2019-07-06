@@ -4,8 +4,6 @@ from datetime import datetime
 #creating the flask app
 
 app = Flask(__name__)
-Data = [{"Name":"Rohith","Designation":"Software Developer"},{"Name":"aafd","Designation":"Software Developer"}]
-print(Data[0])
 
 #add function 
 @app.route("/add",methods=['POST','GET'])
@@ -44,10 +42,6 @@ def updat():
             return "updation not possible because fields might have not sent properly"
         return jsonify(data = "updated the details")
        
-#using route
-@app.route('/')
-def welcome():
-    return render_template("index.html")
 
 #running the app
 
