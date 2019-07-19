@@ -1,28 +1,31 @@
 from flask import Flask,render_template,request,redirect,make_response,jsonify
+from demo_memcache import add,delete1,update1,read,clear_memcache
 
 #creating the flask app
-
-Data = {"1":{"Name":"ROhith","Salary":"55555","Design":"SD"},
-            "2":{"Name":"ROhith","Salary":"33333","Design":"SD"},
-            "3":{"Name":"ROhith","Salary":"77777","Design":"SD"}}
-
+ 
 app = Flask(__name__)
+keys = set()
 
 #add function 
 @app.route("/add",methods=['POST','GET'])
-def add():
+def add1():
     if request.method == "POST":
         try:
-            Id= request.form['Id']
-            Name = request.form['Name']
-            Salary = request.form['Salary']
+            Id1= request.form['Id']
+            keys.add(Id1)
+            Name1 = request.form['Name']
+            Salary1 = request.form['Salary']
             Designation = request.form['Desig']
-            Data.update({Id :{"Name":Name,"Salary":Salary,"Design":Designation}})
+            #Data.update({Id :{"Name":Name,"Salary":Salary,"Design":Designation}})
+            try:
+                da=add(Id1,{"Name":Name1,"Salary":Salary1,"Design":Designation},keys)
+            except Exception as ee:
+                return "cannot add  " + str(ee)
         except Exception as e:
-            return "there is a problem with the fileds you are sendings"
-        return jsonify(data = Data)
-    else:
-        return jsonify(data = "U made a get request")
+            return "missing fields  " + str(e)
+        return jsonify(data = da)
+
+    return jsonify(data = "U made a get request")
        
     
 
@@ -33,14 +36,15 @@ def delf():
         try:
             Id=request.form['Id']
             try:
-                print(Data.pop(Id))
-            except KeyError:
-                return "Id not found in the dictionary"
+                keys.remove(Id)
+                ddata=delete1(Id,keys)
+            except Exception as k:
+                return "Deletion not possible,Id does not exist  " + str(k)
         except Exception as e:
-            return "Deletion not possible,check if the fields are sent properly"
-        return jsonify(data = Data)
-    else:
-        return jsonify(data = "You made a get request,Please make sure to do a POST request with ID parameter")
+            return "check the field  " + str(e)
+        return jsonify(data = ddata)
+    
+    return jsonify(data = "You made a get request,Please make sure to do a POST request with ID parameter")
         
 #update task
 @app.route("/update",methods = ['POST','GET'])
@@ -48,23 +52,32 @@ def updat():
     if request.method == "POST":
         try:
             Id=request.form['Id']
-            Field=request.form['Field']
-            Value=request.form['Value']
-            try:
-                dat=Data.get(Id)
-                dat[Field] = Value
-            except TypeError:
-                return "ID not found in the Dictionary"
+            Name1= request.form['Name']
+            Design1= request.form['Desig']
+            Salary1 = request.form['Salary']
+            try:    
+                udata=update1(Id,Name1,Salary1,Design1,keys)
+            except Exception as t:
+                return "cannot update,ID not found  " + str(t)
         except Exception as e:
-            return "Updation not possible because fields might have not sent properly"
-        return jsonify(data =Data)
-    else:
-        return jsonify(data = "Please Use POST request and Send relevant data for updating.")
+            return "missing field  " + str(e)
+        return jsonify(data =udata)
+    
+    return jsonify(data = "Please Use POST request and Send relevant data for updating.")
+
+@app.route("/read",methods = ['GET','POST'])
+def read1():
+    return jsonify(data=read(keys))
+
 #welcome        
 @app.route("/",methods = ['GET','POST'])
 def welcome():
-    return jsonify(data = Data)
+    status = clear_memcache()
+    if status == True:
+        return jsonify(data = "Welcome to the CRUD App")
+    else:
+        return jsonify(data = "There is a problem flushing the memcache ,App is down")
 #running the app
 
-if __name__ =='__main__':
-    app.run(host='127.0.0.1',port=5001,debug=True)
+# if __name__ =='__main__':
+#     app.run(host='127.0.0.1',port=5001,debug=True)
